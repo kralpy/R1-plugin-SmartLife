@@ -11,47 +11,52 @@
       width: 240px;
       height: 282px;
       background: #000;
+      font-family: sans-serif;
       overflow: hidden;
     }
-    iframe {
+    #openButton {
       width: 100%;
       height: 100%;
+      background: #1e88e5;
+      color: #fff;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       border: none;
-      transform: scale(1.2);          /* zoom iets in zodat QR precies past */
-      transform-origin: top left;     /* begin bij linksboven */
-      overflow: hidden;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <iframe id="smartlifeFrame" src="https://ipc-eu.ismartlife.me/login"></iframe>
+  <button id="openButton">Open Smart Life</button>
 
   <script>
-    const frame = document.getElementById("smartlifeFrame");
+    const button = document.getElementById('openButton');
 
-    // Probeer sessie te onthouden
     (async () => {
       try {
-        const savedSession = await window.creationStorage.secure.getItem("smartlife_session");
-        if (savedSession) {
-          frame.src = atob(savedSession); // herstel vorige sessie
+        // Controleer of er een opgeslagen sessie is
+        const savedUrl = await window.creationStorage.secure.getItem('smartlife_session');
+        if (savedUrl) {
+          window.location.href = atob(savedUrl); // Laad opgeslagen sessie
         }
-
-        frame.addEventListener("load", async () => {
-          // Sla de huidige pagina op als sessie (na login)
-          try {
-            const currentUrl = frame.contentWindow.location.href;
-            if (!currentUrl.includes("login")) {
-              await window.creationStorage.secure.setItem("smartlife_session", btoa(currentUrl));
-            }
-          } catch (err) {
-            console.log("Kon sessie niet opslaan:", err);
-          }
-        });
       } catch (err) {
         console.log("Storage error:", err);
       }
     })();
+
+    button.addEventListener('click', async () => {
+      const url = "https://ipc-eu.ismartlife.me/login";
+      window.location.href = url;
+
+      try {
+        // Sla de login-URL op voor volgende keer
+        await window.creationStorage.secure.setItem('smartlife_session', btoa(url));
+      } catch (err) {
+        console.log("Kon sessie niet opslaan:", err);
+      }
+    });
   </script>
 </body>
 </html>
