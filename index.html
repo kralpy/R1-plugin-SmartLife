@@ -14,41 +14,66 @@
     font-family: sans-serif;
     overflow: hidden;
   }
-  #openButton {
-    width: 100%;
-    height: 100%;
-    background: #1a73e8;
-    color: #fff;
-    font-size: 14px;
+  iframe {
+    width: 240px;
+    height: 282px;
+    border: none;
+  }
+  #qrWrapper {
+    width: 240px;
+    height: 282px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: none;
-    cursor: pointer;
+    background: #fff;
+  }
+  #qrWrapper img {
+    max-width: 200px;
+    max-height: 200px;
   }
 </style>
 </head>
 <body>
-<button id="openButton">Open Smart Camera</button>
+<div id="qrWrapper" style="display:none;">
+  <p>Scan this QR to login:</p>
+  <img id="qrImage" src="" alt="QR Code">
+</div>
+<iframe id="smartFrame" src="" style="display:none;"></iframe>
 
 <script>
 (async () => {
-  // Check if we already have a saved login/session
-  const savedSession = await window.creationStorage.secure.getItem("smart_camera_session");
-  
-  if (savedSession) {
-    // Restore session
-    window.location.href = atob(savedSession);
+  const storageKey = "smart_camera_session";
+  const frame = document.getElementById("smartFrame");
+  const qrWrapper = document.getElementById("qrWrapper");
+  const qrImage = document.getElementById("qrImage");
+
+  // Check saved session
+  const saved = await window.creationStorage.secure.getItem(storageKey);
+  if (saved) {
+    frame.src = atob(saved);
+    frame.style.display = "block";
+  } else {
+    // Open login page first time
+    frame.src = "https://ipc-eu.ismartlife.me/login";
+    frame.style.display = "block";
   }
 
-  document.getElementById("openButton").addEventListener("click", async () => {
-    const loginUrl = "https://ipc-eu.ismartlife.me/login";
-
-    // Save the login URL (or later, the redirect after login)
-    await window.creationStorage.secure.setItem("smart_camera_session", btoa(loginUrl));
-
-    // Open Smart Camera
-    window.location.href = loginUrl;
+  // Try to detect QR image after loading
+  frame.addEventListener("load", async () => {
+    try {
+      const doc = frame.contentDocument || frame.contentWindow.document;
+      const qr = doc.querySelector("img[src*='qrcode']");
+      if (qr) {
+        qrImage.src = qr.src;
+        qrWrapper.style.display = "flex";
+        frame.style.display = "none";
+      } else {
+        // If no QR found, save the current URL as session
+        await window.creationStorage.secure.setItem(storageKey, btoa(frame.contentWindow.location.href));
+      }
+    } catch (e) {
+      console.log("Cross-origin restriction, cannot access iframe directly");
+    }
   });
 })();
 </script>
