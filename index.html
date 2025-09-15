@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>R1 Smart Life Plugin</title>
+<title>R1 Smart Camera Plugin</title>
 <meta name="viewport" content="width=240, height=282, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
   html, body {
@@ -29,29 +29,28 @@
 </style>
 </head>
 <body>
-<button id="openButton">Open Smart Life</button>
+<button id="openButton">Open Smart Camera</button>
 
 <script>
-async function saveLogin(token) {
-  await window.creationStorage.secure.setItem("smartlife_token", btoa(token));
-}
-
-async function getLogin() {
-  const stored = await window.creationStorage.secure.getItem("smartlife_token");
-  return stored ? atob(stored) : null;
-}
-
-document.getElementById("openButton").addEventListener("click", async () => {
-  const token = await getLogin();
-  if (token) {
-    // If token already saved, open Smart Life dashboard directly
-    window.location.href = "https://ipc-eu.ismartlife.me/dashboard?auth=" + encodeURIComponent(token);
-  } else {
-    // Otherwise go to login page
-    window.location.href = "https://ipc-eu.ismartlife.me/login";
-    // ⚠️ You must hook into login success and call saveLogin(authToken)
+(async () => {
+  // Check if we already have a saved login/session
+  const savedSession = await window.creationStorage.secure.getItem("smart_camera_session");
+  
+  if (savedSession) {
+    // Restore session
+    window.location.href = atob(savedSession);
   }
-});
+
+  document.getElementById("openButton").addEventListener("click", async () => {
+    const loginUrl = "https://ipc-eu.ismartlife.me/login";
+
+    // Save the login URL (or later, the redirect after login)
+    await window.creationStorage.secure.setItem("smart_camera_session", btoa(loginUrl));
+
+    // Open Smart Camera
+    window.location.href = loginUrl;
+  });
+})();
 </script>
 </body>
 </html>
