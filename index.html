@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>R1 Smart Life Plugin</title>
+  <title>R1 SmartLife Plugin</title>
   <meta name="viewport" content="width=240, height=282, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <style>
     html, body {
@@ -32,30 +32,9 @@
   <button id="openButton">Open Smart Life</button>
 
   <script>
-    const button = document.getElementById('openButton');
-
-    (async () => {
-      try {
-        // Controleer of er een opgeslagen sessie is
-        const savedUrl = await window.creationStorage.secure.getItem('smartlife_session');
-        if (savedUrl) {
-          window.location.href = atob(savedUrl); // Laad opgeslagen sessie
-        }
-      } catch (err) {
-        console.log("Storage error:", err);
-      }
-    })();
-
-    button.addEventListener('click', async () => {
-      const url = "https://ipc-eu.ismartlife.me/login";
-      window.location.href = url;
-
-      try {
-        // Sla de login-URL op voor volgende keer
-        await window.creationStorage.secure.setItem('smartlife_session', btoa(url));
-      } catch (err) {
-        console.log("Kon sessie niet opslaan:", err);
-      }
+    document.getElementById('openButton').addEventListener('click', () => {
+      // Open TikTok in the R1 webview
+      window.location.href = "https://ipc-eu.ismartlife.me/";
     });
   </script>
 </body>
