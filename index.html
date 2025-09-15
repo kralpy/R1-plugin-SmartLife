@@ -10,14 +10,16 @@
       padding: 0;
       width: 240px;
       height: 282px;
-      background: #ffffff;
+      background: #000;
       overflow: hidden;
-      font-family: sans-serif;
     }
     iframe {
       width: 100%;
       height: 100%;
       border: none;
+      transform: scale(1.2);          /* zoom iets in zodat QR precies past */
+      transform-origin: top left;     /* begin bij linksboven */
+      overflow: hidden;
     }
   </style>
 </head>
@@ -27,29 +29,29 @@
   <script>
     const frame = document.getElementById("smartlifeFrame");
 
-    async function initLogin() {
-      // Check if we already stored a login token
-      const savedToken = await window.creationStorage.secure.getItem("smartlife_token");
+    // Probeer sessie te onthouden
+    (async () => {
+      try {
+        const savedSession = await window.creationStorage.secure.getItem("smartlife_session");
+        if (savedSession) {
+          frame.src = atob(savedSession); // herstel vorige sessie
+        }
 
-      if (savedToken) {
-        // If token exists, go directly to main dashboard
-        frame.src = "https://ipc-eu.ismartlife.me/app";
-      } else {
-        // Otherwise, stay on login and wait for success
-        frame.src = "https://ipc-eu.ismartlife.me/login";
+        frame.addEventListener("load", async () => {
+          // Sla de huidige pagina op als sessie (na login)
+          try {
+            const currentUrl = frame.contentWindow.location.href;
+            if (!currentUrl.includes("login")) {
+              await window.creationStorage.secure.setItem("smartlife_session", btoa(currentUrl));
+            }
+          } catch (err) {
+            console.log("Kon sessie niet opslaan:", err);
+          }
+        });
+      } catch (err) {
+        console.log("Storage error:", err);
       }
-    }
-
-    // Example hook after login success (depends on site redirect)
-    window.addEventListener("message", async (event) => {
-      if (event.data && event.data.type === "LOGIN_SUCCESS") {
-        // Store token securely
-        await window.creationStorage.secure.setItem("smartlife_token", btoa(event.data.token));
-        frame.src = "https://ipc-eu.ismartlife.me/app";
-      }
-    });
-
-    initLogin();
+    })();
   </script>
 </body>
 </html>
